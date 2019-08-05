@@ -89,6 +89,21 @@ def setDescribeTrack(title, path_file, status):
 # ----------------------------------------------------------
 
 
+def updateTrackList(current_pass):
+    files = [f for f in os.listdir(current_pass) if os.path.isfile(f)]
+    for f in files:
+        fileName = f.title()
+        setDescribeTrack(fileName, current_pass, 'relevant')
+
+    dirs = [name for name in os.listdir(current_pass) if os.path.isdir(os.path.join(current_pass, name))]
+    for d in dirs:
+        updateTrackList(os.path.join(current_pass, d))
+
+
+# ----------------------------------------------------------
+
+updateTrackList(path)
+
 def downloadAllMusic():
     time_start = time()
 
