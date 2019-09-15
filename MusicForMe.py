@@ -21,7 +21,7 @@ from time import time
 REQUEST_STATUS_CODE = 200
 name_dir = 'music_vk'
 # root_path = r'D:\vk\course\music\\' + name_dir
-root_path = os.path.join("D:\\vk\\course\\music", name_dir)
+rootPath = os.path.join("D:\\vk\\course\\music", name_dir)
 trackListFile = "tracklist.json"
 login = '79282254991'  # Номер телефона
 password = 'Vk*1478963'  # Пароль
@@ -33,16 +33,17 @@ vk_session.auth()
 vk = vk_session.get_api()  # Теперь можно обращаться к методам API как к обычным классам
 vk_audio = audio.VkAudio(vk_session)
 
-if not os.path.exists(root_path):
-    os.makedirs(root_path)
+if not os.path.exists(rootPath):
+    os.makedirs(rootPath)
 
-trackListPath = os.path.join(root_path, trackListFile)
+trackListPath = os.path.join(rootPath, trackListFile)
 
-os.chdir(root_path)
-list_dir = os.listdir(root_path)
+os.chdir(rootPath)
+list_dir = os.listdir(rootPath)
 # ----------------------------------------------------------
 
-def setDescribeTrack(track_list, title, path_file, status):
+
+def set_describe_track(track_list, title, path_file, status):
     if track_list.get(title):
         track_list[title].append({'path': path_file, 'status': status})
     else:
@@ -51,6 +52,7 @@ def setDescribeTrack(track_list, title, path_file, status):
 
     return track_list
 # ----------------------------------------------------------
+
 
 def gen_dict_extract(key, var):
     if hasattr(var, 'iteritems'):
@@ -66,7 +68,8 @@ def gen_dict_extract(key, var):
                         yield result
 # ----------------------------------------------------------
 
-def checkFileInTrackList(file_name):
+
+def check_file_in_track_list(file_name):
     global trackList
     if trackList.get(file_name):
         descriptions = trackList[file_name]
@@ -77,7 +80,7 @@ def checkFileInTrackList(file_name):
 # ----------------------------------------------------------
 
 
-def copyFileToDir(currentPath, fileName, dstPath):
+def copy_file_to_dir(currentPath, fileName, dstPath):
     try:
         print("Copy file", fileName, "to", dstPath)
         shutil.move(os.path.join(currentPath, fileName), os.path.join(dstPath, fileName))
@@ -94,19 +97,21 @@ def copyFileToDir(currentPath, fileName, dstPath):
 
 # ----------------------------------------------------------
 
+
 class FileManager:
     trackList = {}
     userTrackMap = {}
     workingDir = ''
     trackListPath = ''
 
-    def createTrackListFile(self):
+    @staticmethod
+    def create_track_list_file():
         dst_data = {}
         with open(trackListPath, 'w+') as outfile:
             json.dump(dst_data, outfile)
         # ----------------------------------------------------------
 
-    def getTrackList(self, current_path):
+    def get_track_list(self, current_path):
         files = [f for f in os.listdir(current_path) if os.path.isfile(f)]
         for f in files:
             fileName = f.title()
@@ -137,15 +142,15 @@ class FileManager:
 
         dirs = [name for name in os.listdir(current_path) if os.path.isdir(os.path.join(current_path, name))]
         for d in dirs:
-            self.getTrackList(os.path.join(current_path, d))
+            self.get_track_list(os.path.join(current_path, d))
 
-    def readUsersTrackMap(self, trackListPath):
+    def read_users_track_map(self, track_list_path):
         if list_dir.count(trackListFile) == 0:
-            self.createTrackListFile()
+            self.create_track_list_file()
 
         global userTrackMap
 
-        with open(trackListPath) as json_file:
+        with open(track_list_path) as json_file:
             data = json.load(json_file)
             for p in data:
                 print('Title: ' + p['title'])
@@ -154,19 +159,19 @@ class FileManager:
                 print('')
 
                 title = p['title']
-                filePath = p['path']
+                file_path = p['path']
 
                 if title in self.userTrackMap.keys():
                     path_list = self.userTrackMap.get(title)
-                    path_list.append(filePath)
+                    path_list.append(file_path)
                     self.userTrackMap[title] = path_list
                     print(self.userTrackMap)
                 else:
-                    path_list = [filePath]
+                    path_list = [file_path]
                     self.userTrackMap[title] = path_list
     # ----------------------------------------------------------
 
-    def updateUsersTrackMap(self):
+    def update_users_track_map(self):
 
         global trackList
         global userTrackMap
@@ -179,7 +184,7 @@ class FileManager:
             else:
                 self.userTrackMap[track] = self.trackList[track]
 
-        self.saveTrackList()
+        self.save_track_list()
 
     # ----------------------------------------------------------
 
@@ -187,11 +192,11 @@ class FileManager:
         self.workingDir = root_path
         self.trackListPath = trackListPath
 
-        self.getTrackList(self.workingDir)
-        self.readUsersTrackMap(self.trackListPath)
-        self.updateUsersTrackMap()
+        self.get_track_list(self.workingDir)
+        self.read_users_track_map(self.trackListPath)
+        self.update_users_track_map()
 
-    def saveTrackList(self):
+    def save_track_list(self):
         json_track_list = []
         global userTrackMap
 
@@ -204,43 +209,47 @@ class FileManager:
             json.dump(json_track_list, outfile)
     # ----------------------------------------------------------
 
-    def checkIfFileExists(self, title):
+    def check_if_file_exists(self, title):
         if title in self.userTrackMap.keys():
             return True
         else:
             return False
     # ----------------------------------------------------------
 
-    def addNewTrackDescribe(self, title, path):
+    def add_new_track_describe(self, title, path):
         global userTrackMap
 
         if title in self.userTrackMap.keys():
             path_list = self.userTrackMap[title]
-            path_list.append(root_path)
+            path_list.append(path)
             self.userTrackMap[title] = path_list
         else:
             path_list = [path]
             self.userTrackMap[title] = path_list
 
-        self.saveTrackList()
+        self.save_track_list()
+    # ----------------------------------------------------------
+
 
 class MusicManager:
     workingDir = ''
     trackListPath = ''
-    def __init__(self, root_path, trackListPath):
+
+    def __init__(self, root_path, track_list_path):
         self.workingDir = root_path
-        self.trackListPath = trackListPath
+        self.trackListPath = track_list_path
 
-    def downloadIteration(self):
+    def download_iteration(self):
         time_start = time()
+        global workingDir
 
-        fileManager = FileManager(root_path, trackListPath)
+        file_manager = FileManager(self.workingDir, trackListPath)
 
-        count = 50
+        count = 5
         for i in vk_audio.get(owner_id=my_id):
             title = i["artist"] + '-' + i["title"] + '.mp3'
             # if list_dir.count(title) > 0:
-            if fileManager.checkIfFileExists(title):
+            if file_manager.check_if_file_exists(title):
                 print(title + ' already exist')
                 continue
 
@@ -250,7 +259,7 @@ class MusicManager:
                     with open(title, 'wb') as output_file:
                         print(title + ' download and save to file')
                         output_file.write(r.content)
-                        fileManager.addNewTrackDescribe(title, root_path)
+                        file_manager.add_new_track_describe(title, self.workingDir)
                         if count <= 0:
                             break
                         count = count - 1
@@ -258,12 +267,13 @@ class MusicManager:
             except OSError:
                 print(i["artist"] + '-' + i["title"])
 
-        fileManager.saveTrackList()
+        file_manager.save_track_list()
 
         time_finish = time()
         print("Time seconds:", time_finish - time_start)
         print("Download complete")
         # ----------------------------------------------------------
 
-mus_man = MusicManager(root_path, trackListPath)
-mus_man.downloadIteration()
+
+mus_man = MusicManager(rootPath, trackListPath)
+mus_man.download_iteration()
